@@ -1,6 +1,6 @@
 import type { ListItem, RouterData } from "../types.js";
 import { get } from "../utils/getData.js";
-import { load } from "cheerio";
+import { parseRSS } from "../utils/parseRSS.js";
 
 export const handleRoute = async (_: undefined, noCache: boolean) => {
   const listData = await getList(noCache);
@@ -17,9 +17,9 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
 };
 
 const getList = async (noCache: boolean) => {
-  const baseUrl = "https://www.producthunt.com";
+  const feedUrl = "https://www.producthunt.com/feed";
   const result = await get<string>({
-    url: baseUrl,
+    url: feedUrl,
     noCache,
     headers: {
       userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -27,33 +27,35 @@ const getList = async (noCache: boolean) => {
   });
 
   try {
-    const $ = load(result.data);
-    const stories: ListItem[] = [];
-
-    $("[data-test=homepage-section-0] [data-test^=post-item]").each((_, el) => {
-      const a = $(el).find("a").first();
-      const path = a.attr("href");
-      const title = $(el).find("a[data-test^=post-name]").text().trim();
-      const id = $(el).attr("data-test")?.replace("post-item-", "");
-      const vote = $(el).find("[data-test=vote-button]").text().trim();
-
-      if (path && id && title) {
-        stories.push({
-          id,
-          title,
-          hot: parseInt(vote) || undefined,
-          timestamp: undefined,
-          url: `${baseUrl}${path}`,
-          mobileUrl: `${baseUrl}${path}`,
-        });
-      }
-    });
+    const stories = (await parseRSS(result.data))
+      .map(mapFeedItemToStory)
+      .filter((item): item is ListItem => item !== null);
 
     return {
       ...result,
       data: stories,
     };
   } catch (error) {
-    throw new Error(`Failed to parse Product Hunt HTML: ${error}`);
+    throw new Error(`Failed to parse Product Hunt feed: ${error}`);
   }
+};
+
+interface ProductHuntFeedItem {
+  title?: string;
+  link?: string;
+  pubDate?: string;
+  guid?: string;
+}
+
+export const mapFeedItemToStory = (item: ProductHuntFeedItem): ListItem | null => {
+  if (!item.title || !item.link) return null;
+
+  return {
+    id: item.guid ?? item.link,
+    title: item.title,
+    hot: undefined,
+    timestamp: item.pubDate ? Date.parse(item.pubDate) : undefined,
+    url: item.link,
+    mobileUrl: item.link,
+  };
 };
