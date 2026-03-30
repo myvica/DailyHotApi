@@ -1,25 +1,58 @@
-import { serve } from "@hono/node-server";
-import { config } from "./config.js";
-import logger from "./utils/logger.js";
-import app from "./app.js";
+/**
+ * DailyHotApi - 热榜数据提供
+ *
+ * 此模块导出爬虫函数供 MCP 使用
+ * HTTP 服务已移除 - 请使用 MCP 服务访问热榜数据
+ */
 
-// 启动服务器
-const serveHotApi: (port?: number) => void = (port: number = config.PORT) => {
-  try {
-    const apiServer = serve({
-      fetch: app.fetch,
-      port,
-    });
-    logger.info(`🔥 DailyHot API successfully runs on port ${port}`);
-    logger.info(`🔗 Local: 👉 http://localhost:${port}`);
-    return apiServer;
-  } catch (error) {
-    logger.error(error);
-  }
-};
+import { fileURLToPath } from "url";
+import path from "path";
 
-if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "docker") {
-  serveHotApi(config.PORT);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const routesDir = path.join(__dirname, "routes");
+
+export interface RouterData {
+  name: string;
+  title: string;
+  type: string;
+  description?: string;
+  link?: string;
+  total: number;
+  data?: Array<{
+    id: string;
+    title: string;
+    desc: string;
+    hot: number | string;
+    url: string;
+    mobileUrl?: string;
+  }>;
 }
 
-export default serveHotApi;
+/**
+ * 获取热榜数据
+ * @param platform 平台名称 (如 weibo, bilibili, zhihu)
+ * @param noCache 是否跳过缓存
+ */
+export async function getHotList(platform: string, noCache = false): Promise<RouterData> {
+  const { handleRoute } = await import(`./routes/${platform}.js`);
+  const mockCtx = {
+    req: {
+      query: (key: string) => key === "cache" ? (noCache ? "false" : "true") : undefined,
+    },
+  };
+  return handleRoute(mockCtx as never, noCache) as RouterData;
+}
+
+/**
+ * 列出所有可用平台
+ */
+export async function listPlatforms(): Promise<string[]> {
+  const fs = await import("fs");
+  const files = fs.readdirSync(routesDir);
+  return files
+    .filter(f => f.endsWith(".ts") && !f.endsWith(".d.ts"))
+    .map(f => f.replace(/\.ts$/, ""));
+}
+
+// 保留入口点用于 MCP
+export default { getHotList, listPlatforms };

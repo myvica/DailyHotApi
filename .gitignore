@@ -24,6 +24,26 @@ dist
 *.sw?
 
 package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
 # Sentry Config File
 .env.sentry-build-plugin
 .nvmrc
+
+# Coverage
+coverage
+.nyc_output
+
+# PM2
+.pm2
+.pm2.log
+
+# Temp
+.cache
+tmp
+temp
+
+.sisyphus/*
+.claude/*
+AGENTS.md

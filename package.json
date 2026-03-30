@@ -1,42 +1,43 @@
 {
   "name": "dailyhot-api",
   "version": "2.0.8",
-  "description": "An Api on Today's Hot list",
+  "description": "热榜数据 MCP 服务",
   "keywords": [
-    "API",
-    "RSS"
+    "mcp",
+    "hotlist",
+    "dailyhot"
   ],
-  "homepage": "https://github.com/imsyy/DailyHotApi#readme",
+  "homepage": "https://github.com/FrankXMX/DailyHotApi#readme",
   "bugs": {
-    "url": "https://github.com/imsyy/DailyHotApi/issues"
+    "url": "https://github.com/FrankXMX/DailyHotApi/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/imsyy/DailyHotApi.git"
+    "url": "git+https://github.com/FrankXMX/DailyHotApi.git"
   },
   "license": "MIT",
-  "author": "imsyy",
+  "author": "FrankXMX",
   "main": "dist/index.js",
-  "declaration": true,
-  "declarationMap": true,
-  "sourceMap": true,
+  "type": "module",
+  "bin": {
+    "dailyhot-mcp": "mcp/dist/index.js"
+  },
   "files": [
     "LICENSE",
     "README.md",
     "dist/**/*",
+    "mcp/**/*",
     "!dist/logs/**/*"
   ],
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint .",
-    "dev": "cross-env NODE_ENV=development tsx watch --no-cache src/index.ts",
-    "dev:cache": "cross-env NODE_ENV=development tsx watch src/index.ts",
     "build": "tsc --project tsconfig.json",
-    "start": "cross-env NODE_ENV=development node dist/index.js"
+    "build:mcp": "cd mcp && npm run build",
+    "start": "npx dailyhot-mcp"
   },
-  "type": "module",
   "dependencies": {
-    "@hono/node-server": "^1.17.1",
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "axios": "^1.11.0",
     "chalk": "^5.4.1",
     "cheerio": "^1.1.2",
@@ -44,7 +45,6 @@
     "dotenv": "^17.2.1",
     "feed": "^5.1.0",
     "flatted": "^3.3.3",
-    "hono": "^4.8.9",
     "iconv-lite": "^0.6.3",
     "ioredis": "^5.6.1",
     "md5": "^2.3.0",
@@ -52,7 +52,8 @@
     "node-fetch": "^3.3.2",
     "rss-parser": "^3.13.0",
     "user-agents": "^1.1.614",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
