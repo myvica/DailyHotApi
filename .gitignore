@@ -27,3 +27,8 @@ package-lock.json
 # Sentry Config File
 .env.sentry-build-plugin
 .nvmrc
+
+# Local workspace artifacts
+.planning/
+.pnpm-store/
+补丁/

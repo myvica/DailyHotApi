@@ -1,6 +1,24 @@
 import type { RouterData, ListContext, Options, RouterResType } from "../types.js";
 import { get } from "../utils/getData.js";
 
+/*
+ * ========================= Change Record =========================
+ * [Date]        2026-04-09
+ * [Type]        Bug Fix
+ * [Description] Harden the Baidu route against board HTML changes and align
+ *               source code with the previously validated post-build patch.
+ * [Approach]    Keep the existing resilient s-data parsing, but restore the
+ *               mobile User-Agent and safer URL fallbacks from the tested fix.
+ * [Parameters]  handleRoute(c, noCache): `c` carries the query string, and
+ *               `noCache` bypasses the shared HTTP cache when true.
+ * [Returns]     RouterData for the selected Baidu board, or an empty list when
+ *               the page no longer exposes a parsable payload.
+ * [Impact]      Affects `/baidu` route consumers and build output generated
+ *               from this source file.
+ * [Risk]        Depends on Baidu still embedding `<!--s-data:...-->` in the
+ *               board page; no other known risk.
+ * =================================================================
+ */
 const typeMap: Record<string, string> = {
   realtime: "热搜",
   novel: "小说",
@@ -51,6 +69,23 @@ interface BaiduSData {
   cards?: Array<{ content?: BaiduItem[] }>;
 }
 
+/**
+ * Extracts the actual board list from the nested `s-data` payload.
+ *
+ * The Baidu board payload has changed between `cards` and `data.cards`, and
+ * some responses wrap the final list in an extra `content[0].content` layer.
+ */
+const extractBoardItems = (payload: BaiduSData): BaiduItem[] => {
+  const cardContent = payload.data?.cards?.[0]?.content ?? payload.cards?.[0]?.content;
+  if (!Array.isArray(cardContent)) {
+    return [];
+  }
+  if (cardContent.length > 0 && Array.isArray(cardContent[0]?.content)) {
+    return cardContent[0].content ?? [];
+  }
+  return cardContent;
+};
+
 const getList = async (options: Options, noCache: boolean): Promise<RouterResType> => {
   const { type } = options;
   const url = `https://top.baidu.com/board?tab=${type}`;
@@ -59,10 +94,9 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
     noCache,
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 14_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 Safari/605.1.15",
     },
   });
-  // 正则查找
   const pattern = /<!--s-data:(.*?)-->/s;
   const matchResult = result.data.match(pattern);
   if (!matchResult) {
@@ -73,15 +107,7 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
   }
   let jsonObject: BaiduItem[] = [];
   try {
-    const sData: BaiduSData = JSON.parse(matchResult[1]);
-    const cardContent = sData.data?.cards?.[0]?.content ?? sData.cards?.[0]?.content;
-    if (Array.isArray(cardContent)) {
-      if (cardContent.length > 0 && Array.isArray(cardContent[0]?.content)) {
-        jsonObject = cardContent[0].content!;
-      } else {
-        jsonObject = cardContent;
-      }
-    }
+    jsonObject = extractBoardItems(JSON.parse(matchResult[1]) as BaiduSData);
   } catch {
     jsonObject = [];
   }
@@ -97,8 +123,10 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
         author: v.show?.length ? v.show : "",
         timestamp: 0,
         hot: parseInt((v.hotScore ?? v.hotTag ?? "0").toString(), 10) || 0,
-        url: `https://www.baidu.com/s?wd=${encodeURIComponent(v.query ?? title)}`,
-        mobileUrl: v.rawUrl ?? v.url ?? "",
+        url: v.query
+          ? `https://www.baidu.com/s?wd=${encodeURIComponent(v.query)}`
+          : (v.url ?? `https://www.baidu.com/s?wd=${encodeURIComponent(title)}`),
+        mobileUrl: v.rawUrl ?? v.url ?? `https://www.baidu.com/s?wd=${encodeURIComponent(title)}`,
       };
     }),
   };

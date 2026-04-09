@@ -1,7 +1,24 @@
 import type { RouterData } from "../types.js";
+import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
-import axios from "axios";
+import * as cheerio from "cheerio";
 
+/*
+ * ========================= Change Record =========================
+ * [Date]        2026-04-09
+ * [Type]        Bug Fix
+ * [Description] Replace the fragile Huxiu moment API path with HTML parsing
+ *               logic from the validated local patch so the route can survive
+ *               API blocking or response regressions.
+ * [Approach]    Fetch the public moment page with a browser-like User-Agent
+ *               and extract cards from multiple selector variants.
+ * [Parameters]  handleRoute(_, noCache): `_` is unused by this route and
+ *               `noCache` bypasses the shared HTTP cache when true.
+ * [Returns]     RouterData containing parsed Huxiu moments.
+ * [Impact]      Affects `/huxiu` route consumers and generated dist output.
+ * [Risk]        HTML selectors may need refresh if Huxiu redesigns the page.
+ * =================================================================
+ */
 export const handleRoute = async (_: undefined, noCache: boolean) => {
   const listData = await getList(noCache);
   const routeData: RouterData = {
@@ -15,63 +32,48 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
-interface HuxiuCountInfo {
-  agree_num: number;
-}
-
-interface HuxiuUserInfo {
-  username: string;
-}
-
-interface HuxiuItem {
-  content: string;
-  object_id: string;
-  user_info?: HuxiuUserInfo;
-  publish_time: string;
-  count_info?: HuxiuCountInfo;
-}
-
-interface HuxiuApiResponse {
-  data?: {
-    moment_list?: {
-      datalist?: HuxiuItem[];
-    };
-  };
-}
-
 const getList = async (noCache: boolean) => {
-  // PC 端接口
-  const url = `https://moment-api.huxiu.com/web-v3/moment/feed?platform=www`;
-  const res = await axios.get<HuxiuApiResponse>(url, {
+  const url = `https://www.huxiu.com/moment/`;
+  const result = await get<string>({
+    url,
+    noCache,
+    responseType: "text",
     headers: {
       "User-Agent": "Mozilla/5.0",
-      Referer: "https://www.huxiu.com/moment/",
     },
-    timeout: 10000,
   });
-  const list = res.data?.data?.moment_list?.datalist || [];
+  const $ = cheerio.load(result.data);
+  const data: RouterData["data"] = [];
+  $(".moment-item-wrap").each((_, element) => {
+    const root = $(element);
+    const id = root.attr("id") || "";
+    const author = root.find(".username i").first().text().trim() || root.find(".username").first().text().trim();
+    const userIntro = root.find(".yijuhua").first().text().trim();
+    const contentNode = root
+      .find(".plain-text, .moment-item-desc, .moment-item-content, .article-content, .summary, .line-clamp-6")
+      .first();
+    const title = contentNode.text().trim() || root.find(".moment-item a").first().text().trim();
+    const href = root.find("a[href*='/moment/'], a[href*='/article/']").first().attr("href") || "";
+    const timeText = root.find(".time, .publish-time, .moment-time").first().text().trim();
+    const fullUrl = href
+      ? new URL(href, "https://www.huxiu.com").toString()
+      : `https://www.huxiu.com/moment/${id}.html`;
+    if (!title) {
+      return;
+    }
+    data.push({
+      id: id || fullUrl,
+      title,
+      desc: userIntro,
+      author,
+      timestamp: timeText ? getTime(timeText) : undefined,
+      hot: undefined,
+      url: fullUrl,
+      mobileUrl: fullUrl.replace("https://www.huxiu.com", "https://m.huxiu.com"),
+    });
+  });
   return {
-    fromCache: false,
-    updateTime: new Date().toISOString(),
-    data: list.map((v) => {
-      const content = (v.content || "").replace(/<br\s*\/?>/gi, "\n");
-      const [titleLine, ...rest] = content
-        .split("\n")
-        .map((s: string) => s.trim())
-        .filter(Boolean);
-      const title = titleLine?.replace(/。$/, "") || "";
-      const intro = rest.join("\n");
-      const momentId = v.object_id;
-      return {
-        id: momentId,
-        title,
-        desc: intro,
-        author: v.user_info?.username || "",
-        timestamp: getTime(v.publish_time),
-        hot: v.count_info?.agree_num,
-        url: `https://www.huxiu.com/moment/${momentId}.html`,
-        mobileUrl: `https://m.huxiu.com/moment/${momentId}.html`,
-      };
-    }),
+    ...result,
+    data,
   };
 };
