@@ -32,7 +32,11 @@
     "dev": "cross-env NODE_ENV=development tsx watch --no-cache src/index.ts",
     "dev:cache": "cross-env NODE_ENV=development tsx watch src/index.ts",
     "build": "tsc --project tsconfig.json",
-    "start": "cross-env NODE_ENV=development node dist/index.js"
+    "start": "cross-env NODE_ENV=development node dist/index.js",
+    "dev:worker": "wrangler dev",
+    "build:worker": "wrangler deploy --dry-run --outdir=dist-worker",
+    "deploy:worker": "wrangler deploy",
+    "typecheck:worker": "tsc --project tsconfig.worker.json --noEmit"
   },
   "type": "module",
   "dependencies": {
@@ -56,6 +60,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@cloudflare/workers-types": "^4.20240117.0",
     "@types/md5": "^2.3.5",
     "@types/node": "^22.16.5",
     "@types/user-agents": "^1.0.4",
@@ -68,7 +73,8 @@
     "prettier": "^3.6.2",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.38.0"
+    "typescript-eslint": "^8.38.0",
+    "wrangler": "^3.24.0"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["@cloudflare/workers-types"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "outDir": "./dist-worker",
+    "rootDir": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": [
+    "workers/**/*.ts",
+    "workers/**/*.tsx",
+    "src/routes/**/*.ts",
+    "src/utils/getTime.ts",
+    "src/utils/getNum.ts",
+    "src/utils/parseRSS.ts",
+    "src/utils/getToken/**/*.ts",
+    "src/types.d.ts",
+    "src/views/**/*.tsx"
+  ],
+  "exclude": ["node_modules"]
+}

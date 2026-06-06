@@ -8,6 +8,14 @@
  <img src="https://img.shields.io/docker/image-size/imsyy/dailyhot-api" alt="docker-image-size"/>
 <img src="https://github.com/imsyy/DailyHotApi/actions/workflows/docker.yml/badge.svg" alt="Publish Docker image"/>
 <img src="https://github.com/imsyy/DailyHotApi/actions/workflows/npm.yml/badge.svg" alt="Publish npm package"/>
+<br />
+<br />
+<a href="https://github.com/imsyy/DailyHotApi/fork">
+  <img src="https://img.shields.io/badge/Fork_&_Deploy-181717?style=for-the-badge&logo=github&logoColor=white" alt="Fork & Deploy"/>
+</a>
+<a href="#-cloudflare-workers-一键部署">
+  <img src="https://img.shields.io/badge/Deploy_to_Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Deploy to Cloudflare Workers"/>
+</a>
 </div>
 
 ## 🚩 特性
@@ -214,6 +222,21 @@ sh ./deploy.sh
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/imsyys-projects/clone?repository-url=https%3A%2F%2Fgithub.com%2Fimsyy%2FDailyHotApi-Vercel)
 
+
+## ⚡ Cloudflare Workers 一键部署
+
+本项目支持通过 GitHub Actions 一键将 DailyHotApi 部署到 Cloudflare Workers！
+
+👉 **[查看完整部署指南](.github/CLOUDFLARE_DEPLOY.md)**
+
+### 快速开始（3 步部署）
+
+1. **Fork 本项目**
+2. **配置 GitHub Secrets**
+   - `CLOUDFLARE_API_TOKEN`：你的 Cloudflare API Token
+   - `CLOUDFLARE_ACCOUNT_ID`：你的 Cloudflare 账号 ID
+3. **触发部署**
+   - 推送代码到 main/master 分支，或在 Actions 页面手动触发
 
 ## ⚠️ 须知
 
