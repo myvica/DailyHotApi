@@ -10,4 +10,7 @@ export interface Env {
   RSS_MODE: string;
   FILTER_WEIBO_ADVERTISEMENT: string;
   ZHIHU_COOKIE?: string;
+
+  // 认证密钥（通过 Cloudflare Secrets 配置）
+  API_TOKEN?: string;
 }

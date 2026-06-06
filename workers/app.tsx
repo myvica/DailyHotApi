@@ -13,6 +13,18 @@ const app = new Hono();
 app.use(prettyJSON());
 app.use(trimTrailingSlash());
 
+app.use("*", async (c, next) => {
+  const config = getConfig();
+  if (config.API_TOKEN) {
+    const authHeader = c.req.header("Authorization");
+    const token = authHeader?.replace(/^Bearer\s+/i, "");
+    if (token !== config.API_TOKEN) {
+      return c.json({ code: 403, message: "Forbidden" }, 403);
+    }
+  }
+  await next();
+});
+
 app.use(
   "*",
   cors({

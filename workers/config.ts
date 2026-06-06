@@ -15,6 +15,7 @@ export type Config = {
   REDIS_DB: number;
   ZHIHU_COOKIE: string;
   FILTER_WEIBO_ADVERTISEMENT: boolean;
+  API_TOKEN: string;
 };
 
 const getNumericEnvVariable = (value: string | undefined, defaultValue: number): number => {
@@ -43,6 +44,7 @@ export const createConfig = (env: Env): Config => ({
   REDIS_DB: 0,
   ZHIHU_COOKIE: env.ZHIHU_COOKIE || "",
   FILTER_WEIBO_ADVERTISEMENT: getBooleanEnvVariable(env.FILTER_WEIBO_ADVERTISEMENT, false),
+  API_TOKEN: env.API_TOKEN || "",
 });
 
 let currentConfig: Config | null = null;
