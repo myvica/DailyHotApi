@@ -1,107 +1,133 @@
 # Cloudflare Workers 一键部署指南
 
-## 方式一：使用 GitHub Actions 自动部署（推荐）
+## 📌 前置准备
 
-### 1. Fork 项目
-点击右上角的 "Fork" 按钮，将项目复制到你的 GitHub 账号下。
-
-### 2. 获取 Cloudflare 凭证
-
-#### 获取 API Token
-1. 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. 点击右上角头像 → "我的个人资料" → "API Tokens"
-3. 点击 "Create Token"
-4. 选择 "Edit Cloudflare Workers" 模板
-5. 权限设置：
-   - Account > Workers Scripts > Edit
-   - Account > Workers KV Storage > Edit
-   - Zone > Workers Routes > Edit
-6. 点击 "Continue to summary" → "Create Token"
-7. **复制并保存好 Token（只显示一次！）**
-
-#### 获取 Account ID
-1. 在 Cloudflare Dashboard 中，点击右上角的账号名称
-2. 复制 Account ID
-
-### 3. 配置 GitHub Secrets
-
-在你的 Fork 仓库中：
-1. 点击 "Settings" → "Secrets and variables" → "Actions"
-2. 点击 "New repository secret"
-3. 添加以下 Secrets：
-
-| Secret Name | Value |
-|-------------|-------|
-| `CLOUDFLARE_API_TOKEN` | 上一步获取的 API Token |
-| `CLOUDFLARE_ACCOUNT_ID` | 你的 Cloudflare Account ID |
-
-### 4. 触发部署
-
-有两种方式触发部署：
-
-**方式 A：推送代码（推荐）**
-```bash
-git add .
-git commit -m "Deploy to Cloudflare Workers"
-git push
-```
-
-**方式 B：手动触发**
-1. 进入你的仓库
-2. 点击 "Actions"
-3. 选择 "Deploy to Cloudflare Workers"
-4. 点击 "Run workflow" → 选择分支 → 点击 "Run workflow"
+1. **拥有 Cloudflare 账号** - [注册地址](https://dash.cloudflare.com/sign-up)
+2. **创建 Cloudflare API Token**
+   - 访问 [Cloudflare API Tokens 页面](https://dash.cloudflare.com/profile/api-tokens)
+   - 点击 "Create Token"
+   - 选择 "Edit Cloudflare Workers" 模板
+   - 权限设置:
+     - `Account` → `Workers Scripts` → `Edit`
+     - `Account` → `Workers KV Storage` → `Edit`
+     - `Zone` → `Workers Routes` → `Edit`
+   - 点击 "Continue to summary" → "Create Token"
+   - **复制并保存 Token**（只显示一次！）
 
 ---
 
-## 方式二：使用 Wrangler CLI 手动部署
+## 🚀 方式一：GitHub Actions 自动部署（推荐）
 
-### 前置条件
-- Node.js 20+
-- 一个 Cloudflare 账号
+### 步骤 1：Fork 本项目
 
-### 部署步骤
+点击右上角的 "Fork" 按钮，将项目复制到你的 GitHub 账号下。
 
-1. **克隆项目**
+### 步骤 2：创建 KV 命名空间
+
+在你的电脑上执行：
+
 ```bash
-git clone <你的仓库地址>
+# 安装 wrangler（如果还没装）
+npm install -g wrangler
+
+# 登录 Cloudflare
+wrangler login
+
+# 创建 KV 命名空间
+wrangler kv:namespace:create DAILYHOT_CACHE
+```
+
+执行后会输出类似这样的内容：
+```
+✨ Success!
+Namespace: DAILYHOT_CACHE
+ID: your-kv-namespace-id-here
+```
+
+**复制这个 ID**，下一步需要。
+
+### 步骤 3：配置 GitHub Variables 和 Secrets
+
+在你的 Fork 仓库页面：
+
+#### 配置 Variables（变量）
+1. 点击 "Settings" → "Secrets and variables" → "Actions"
+2. 切换到 "Variables" 标签页
+3. 点击 "New repository variable"
+4. 添加以下 Variable：
+
+| Variable Name | Value |
+|---------------|-------|
+| `KV_NAMESPACE_ID` | 你在步骤 2 中获取的 KV 命名空间 ID |
+
+#### 配置 Secrets（密钥）
+1. 切换回 "Secrets" 标签页
+2. 点击 "New repository secret"
+3. 添加以下 Secret：
+
+| Secret Name | Value |
+|-------------|-------|
+| `CLOUDFLARE_API_TOKEN` | 你在前置准备中获取的 API Token |
+
+### 步骤 4：触发部署
+
+推送代码到 main/master 分支，或者：
+1. 点击 "Actions"
+2. 选择 "Deploy to Cloudflare Workers"
+3. 点击 "Run workflow" → 选择分支 → 点击 "Run workflow"
+
+### 完成！
+
+部署成功后，你会在 Cloudflare Dashboard → Workers & Pages 看到你的 Worker。
+
+---
+
+## 💻 方式二：使用 Wrangler CLI 手动部署
+
+### 步骤 1：克隆项目
+
+```bash
+git clone https://github.com/你的用户名/DailyHotApi.git
 cd DailyHotApi
 ```
 
-2. **安装依赖**
+### 步骤 2：安装依赖
+
 ```bash
-npm install
+pnpm install
 ```
 
-3. **登录 Cloudflare**
+### 步骤 3：登录 Cloudflare
+
 ```bash
 npx wrangler login
 ```
 
-4. **创建 KV 命名空间**
+### 步骤 4：创建 KV 命名空间
+
 ```bash
-npx wrangler kv namespace create DAILYHOT_CACHE
+npx wrangler kv:namespace:create DAILYHOT_CACHE
 ```
 
-5. **更新 wrangler.toml**
-将上一步输出的 KV Namespace ID 填入 `wrangler.toml`：
-```toml
-[[kv_namespaces]]
-binding = "CACHE"
-id = "你的_KV_NAMESPACE_ID"
-preview_id = "你的_KV_NAMESPACE_ID"
-```
+复制输出的 ID。
 
-6. **部署**
+### 步骤 5：修改 wrangler.toml
+
+将 KV 命名空间 ID 填入 `wrangler.toml`。
+
+### 步骤 6：部署
+
 ```bash
 npm run deploy:worker
+# 或者
+npx wrangler deploy
 ```
 
 ---
 
-## 环境变量配置
+## ⚙️ 环境变量配置
 
-在 Cloudflare Dashboard → Workers & Pages → 你的 Worker → Settings → Variables and Secrets 中添加以下变量：
+在 Cloudflare Dashboard → Workers & Pages → 你的 Worker → Settings → Variables and Secrets 添加：
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
@@ -115,17 +141,20 @@ npm run deploy:worker
 
 ---
 
-## 自定义域名（可选）
+## 🌐 自定义域名（可选）
 
-### 1. 通过 wrangler.toml 配置
+### 通过 wrangler.toml 配置
+
 编辑 `wrangler.toml`，添加：
+
 ```toml
 routes = [
   { pattern = "dailyhot.your-domain.com", zone_name = "your-domain.com" }
 ]
 ```
 
-### 2. 通过 Cloudflare Dashboard 配置
+### 通过 Cloudflare Dashboard 配置
+
 1. 进入 Workers & Pages → 你的 Worker
 2. 点击 "Triggers" → "Custom Domains"
 3. 点击 "Add Custom Domain"
@@ -133,9 +162,9 @@ routes = [
 
 ---
 
-## 验证部署
+## ✅ 验证部署
 
-部署完成后，访问你的 Worker URL，应该看到 DailyHotApi 的首页！
+部署完成后，访问你的 Worker URL，应该能看到 DailyHotApi 的首页！
 
 ### 测试 API
 
@@ -152,16 +181,32 @@ curl https://your-worker.workers.dev/zhihu
 
 ---
 
-## 常见问题
+## ❓ 常见问题
 
-### Q: 部署失败，提示 KV 错误
-A: 确保你的 API Token 有 KV 存储权限，并且 wrangler.toml 中的 KV ID 正确。
+### Q: 如何查看部署日志？
 
-### Q: 如何查看日志
-A: 使用命令 `npx wrangler tail` 或在 Cloudflare Dashboard 中查看。
+使用命令：
+```bash
+wrangler tail
+```
 
-### Q: 如何更新部署
-A: 推送代码到 main/master 分支，GitHub Actions 会自动部署。
+或者在 Cloudflare Dashboard 查看。
 
-### Q: 部署成本如何
-A: Cloudflare Workers 免费版每天有 100,000 次请求额度，对于大多数场景完全够用！
+### Q: 如何更新部署？
+
+推送代码到 main/master 分支，GitHub Actions 会自动部署。
+
+### Q: 部署成本如何？
+
+Cloudflare Workers 免费版每天有 100,000 次请求额度，对于大多数场景完全够用！
+
+### Q: 如何删除 Worker？
+
+在 Cloudflare Dashboard → Workers & Pages → 你的 Worker → Settings → Delete。
+
+### Q: Variables 和 Secrets 有什么区别？
+
+- **Variables** - 公开的变量，任何人可以在 Actions 日志中看到
+- **Secrets** - 加密的密钥，不会在日志中显示
+
+KV 命名空间 ID 不是敏感信息，所以用 Variables 即可。

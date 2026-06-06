@@ -1,13 +1,13 @@
 name = "dailyhot-api"
 main = "workers/index.ts"
 compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
 
-# KV 命名空间绑定
+# KV 命名空间 - 通过 GitHub Actions 自动配置
+# 本地测试时可临时填入你的 ID
 [[kv_namespaces]]
 binding = "CACHE"
 id = "YOUR_KV_NAMESPACE_ID"
-preview_id = "YOUR_PREVIEW_KV_ID"
+preview_id = "YOUR_KV_NAMESPACE_ID"
 
 # 环境变量
 [vars]
@@ -17,13 +17,3 @@ ALLOWED_DOMAIN = "*"
 ALLOWED_HOST = "imsyy.top"
 RSS_MODE = "false"
 FILTER_WEIBO_ADVERTISEMENT = "false"
-
-# 生产环境配置
-[env.production]
-name = "dailyhot-api-prod"
-vars = { ALLOWED_DOMAIN = "your-domain.com" }
-
-# 可选：自定义域名
-# routes = [
-#   { pattern = "dailyhot.your-domain.com", zone_name = "your-domain.com" }
-# ]
