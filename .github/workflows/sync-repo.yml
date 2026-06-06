@@ -16,6 +16,6 @@ jobs:
       name: 🔄同步上游repo到分支
       with:
         source_repo: ${{ vars.SOURCE_REPO }}
-        source_branch: main
+        source_branch: master
         destination_branch: ${{ vars.INTERMEDIATE_BRANCH }}
         github_token: ${{ secrets.PAT }}
