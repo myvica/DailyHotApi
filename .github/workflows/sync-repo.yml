@@ -1,0 +1,21 @@
+name: 🔄Upstream Sync🔄
+
+on:
+  schedule: 
+  - cron: "0 0 */5 * *" # every 5 days. set to whatever interval you like
+  workflow_dispatch:
+jobs:
+  repo-sync:
+    name: Repo Sync
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+      with:
+        persist-credentials: false
+    - uses: repo-sync/github-sync@v2
+      name: 🔄同步上游repo到分支
+      with:
+        source_repo: ${{ vars.SOURCE_REPO }}
+        source_branch: main
+        destination_branch: ${{ vars.INTERMEDIATE_BRANCH }}
+        github_token: ${{ secrets.PAT }}

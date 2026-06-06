@@ -15,7 +15,7 @@ let allRoutePath: Array<string> = [];
 const routersDirName: string = "routes";
 
 // 排除路由
-const excludeRoutes: Array<string> = [];
+const excludeRoutes: Array<string> = ["v2"];
 
 // 建立完整目录路径
 const routersDirPath = path.join(__dirname, routersDirName);
@@ -50,6 +50,10 @@ if (fs.existsSync(routersDirPath) && fs.statSync(routersDirPath).isDirectory()) 
 } else {
   console.error(`📂 The directory ${routersDirPath} does not exist or is not a directory`);
 }
+
+// 注册 v2 路由
+import v2Routes from "./routes/v2.js";
+app.route("/v2", v2Routes);
 
 // 注册全部路由
 for (let index = 0; index < allRoutePath.length; index++) {

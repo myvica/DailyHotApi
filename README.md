@@ -82,6 +82,38 @@
 
 </details>
 
+## 适配 HotList-Web 补丁
+
+
+### 1. 新增文件
+- `v2.ts` - 与 HotList-Web 兼容的 API 路由，提供 `GET /v2?type=all` 和 `GET /v2?type=xxx` 接口
+
+### 2. 修改文件
+- `registry.ts` - 注册 v2 路由到主应用
+
+## 使用方法
+
+1. 将 `v2.ts` 复制到 DailyHotApi 项目的 `src/routes/` 目录
+2. 替换 DailyHotApi 项目的 `src/registry.ts` 文件
+3. 重新构建和运行项目
+
+## API 说明
+
+### 获取所有热榜
+```
+GET /v2?type=all
+```
+
+### 获取单个热榜
+```
+GET /v2?type=toutiao
+GET /v2?type=weibo
+GET /v2?type=zhihu
+...
+```
+
+支持的 type 值：toutiao, pengPai, qqNews, wyNews, baiduRD, wbHot, douyinHot, zhihuHot, wbNews, huXiu, gcores, zhihuDay, 36Ke, itNews, chongBluo, woShiPm
+
 ## ⚙️ 使用
 
 本项目支持 `Node.js` 调用，可在安装完成后调用 `serveHotApi` 来开启服务器
@@ -182,13 +214,6 @@ sh ./deploy.sh
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/imsyys-projects/clone?repository-url=https%3A%2F%2Fgithub.com%2Fimsyy%2FDailyHotApi-Vercel)
 
-### Railway 部署
-
-本项目支持使用 [Railway](https://railway.app/) 一键部署，请先将本项目 fork 到您的仓库中，即可使用一键部署。
-
-### Zeabur 部署
-
-本项目支持使用 [Zeabur](https://zeabur.com/) 一键部署，请先将本项目 fork 到您的仓库中，即可使用一键部署。
 
 ## ⚠️ 须知
 
