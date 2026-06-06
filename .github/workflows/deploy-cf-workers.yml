@@ -52,10 +52,12 @@ jobs:
         run: |
           echo "Checking KV namespace..."
           NAMESPACE_NAME="DAILYHOT_CACHE"
-          EXISTING_KV=$(npx wrangler kv namespace list --json | jq -r ".[] | select(.title==\"${NAMESPACE_NAME}\") | .id")
-          if [ -z "$EXISTING_KV" ]; then
+          KV_LIST=$(npx wrangler kv:namespace:list 2>/dev/null || echo "[]")
+          EXISTING_KV=$(echo "$KV_LIST" | jq -r ".[] | select(.title==\"${NAMESPACE_NAME}\") | .id" 2>/dev/null || echo "")
+          
+          if [ -z "$EXISTING_KV" ] || [ "$EXISTING_KV" = "null" ]; then
             echo "Creating KV namespace..."
-            KV_ID=$(npx wrangler kv namespace create ${NAMESPACE_NAME} --json | jq -r ".id")
+            KV_ID=$(npx wrangler kv:namespace:create "${NAMESPACE_NAME}" 2>&1 | grep -o '"id": "[^"]*"' | cut -d'"' -f4 || npx wrangler kv:namespace:create "${NAMESPACE_NAME}" 2>&1 | grep -oP '(?<=id: )\w+' || echo "")
             echo "kv_id=${KV_ID}" >> $GITHUB_OUTPUT
           else
             echo "KV namespace already exists: ${EXISTING_KV}"
