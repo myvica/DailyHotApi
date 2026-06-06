@@ -1,13 +1,7 @@
 import { Hono } from "hono";
 import dayjs from "dayjs";
-import { fileURLToPath } from "url";
-import path from "path";
-import fs from "fs";
 
 const app = new Hono();
-
-// 模拟 __dirname
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // HotList-Web 对应的路由映射
 const hotlistMap: Record<string, { name: string; subtitle: string; route: string }> = {
@@ -29,20 +23,17 @@ const hotlistMap: Record<string, { name: string; subtitle: string; route: string
   woShiPm: { name: "woShiPm", subtitle: "热榜", route: "producthunt" },
 };
 
-// 获取可用的路由
-const getAvailableRoutes = () => {
-  const routesDir = __dirname;
-  const available: string[] = [];
-  if (fs.existsSync(routesDir)) {
-    const items = fs.readdirSync(routesDir);
-    items.forEach((item) => {
-      if (item.endsWith(".ts") || item.endsWith(".js")) {
-        available.push(item.replace(/\.(ts|js)$/, ""));
-      }
-    });
-  }
-  return available;
-};
+// 静态定义的可用路由列表（从registry.ts复制）
+const availableRoutes = [
+  "36kr", "51cto", "acfun", "baidu", "bilibili", "coolapk", "csdn", "dgtle",
+  "douban-group", "douban-movie", "douyin", "earthquake", "gameres", "geekpark",
+  "genshin", "github", "guokr", "hackernews", "hellogithub", "history", "honkai",
+  "hostloc", "hupu", "huxiu", "ifanr", "ithome-xijiayi", "ithome", "jianshu",
+  "juejin", "kuaishou", "linuxdo", "lol", "miyoushe", "netease-news", "newsmth",
+  "ngabbs", "nodeseek", "nytimes", "producthunt", "qq-news", "sina-news", "sina",
+  "smzdm", "sspai", "starrail", "thepaper", "tieba", "toutiao", "v2ex",
+  "weatheralarm", "weibo", "weread", "yystv", "zhihu-daily", "zhihu"
+];
 
 // 格式化热度值
 const formatHot = (hot: number | undefined): string => {
@@ -92,7 +83,6 @@ app.get("/", async (c) => {
   if (type === "all") {
     // 获取全部热榜
     const allData: any[] = [];
-    const availableRoutes = getAvailableRoutes();
     
     for (const [key, mapping] of Object.entries(hotlistMap)) {
       if (availableRoutes.includes(mapping.route)) {
