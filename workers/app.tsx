@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { compress } from "hono/compress";
 import { prettyJSON } from "hono/pretty-json";
 import { trimTrailingSlash } from "hono/trailing-slash";
 import { getConfig } from "./config";
@@ -11,7 +10,6 @@ import Error from "../src/views/Error";
 
 const app = new Hono();
 
-app.use(compress());
 app.use(prettyJSON());
 app.use(trimTrailingSlash());
 
